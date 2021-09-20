@@ -38,7 +38,7 @@ for seed in range(NUM_SEEDS):
             print(protocol_name, metric_name)
             value = metric.measure(protocol_obj)
             df.loc[len(df)] = [protocol_name, metric_name, -value, seed]
-df.to_csv('results_2.csv')
+df.to_csv('results/results_experiment_2.csv')
 
 
 with sns.plotting_context('paper', font_scale=1.3):
@@ -46,4 +46,4 @@ with sns.plotting_context('paper', font_scale=1.3):
     p = sns.catplot(x='value', y='protocol', col='metric', data=df, kind='box',
                     sharex=True, height=2.5, margin_titles=True)
     p.set_titles(row_template='{row_name}', col_template='{col_name}')
-    p.savefig('figure_1.png', dpi=300)
+    p.savefig('results/figure_experiment_2.png', dpi=300)
