@@ -20,7 +20,7 @@ NN_CONFIG = {
 }
 
 
-def loss_nll(_sender_input, _message, _receiver_input, receiver_output, labels):
+def loss_nll(_sender_input, _message, _receiver_input, receiver_output, labels, _):
     nll_1 = torch.nn.functional.cross_entropy(receiver_output[0], labels[0], reduction="none")
     nll_2 = torch.nn.functional.cross_entropy(receiver_output[1], labels[1], reduction="none")
     acc_1 = (labels[0] == receiver_output[0].argmax(dim=1)).float().mean()
@@ -36,7 +36,7 @@ class FixedProtocolSender(torch.nn.Module):
         self.vocab = vocab
         self.training = False
 
-    def forward(self, derivation: Derivation) -> torch.Tensor:
+    def forward(self, derivation: Derivation, _) -> torch.Tensor:
         message = [self.vocab[symbol] for symbol in self.protocol[derivation]]
         zeros = torch.zeros(len(message))
         return torch.LongTensor(message).unsqueeze(dim=0) + 1, zeros.unsqueeze(dim=0), zeros.unsqueeze(dim=0)
@@ -49,7 +49,7 @@ class Receiver(torch.nn.Module):
         self.fc2_1 = torch.nn.Linear(n_features*4, n_features)
         self.fc2_2 = torch.nn.Linear(n_features*4, n_features)
 
-    def forward(self, input, _):
+    def forward(self, input, aux, _):
         hidden = torch.nn.functional.leaky_relu(self.fc1(input))
         return torch.stack([self.fc2_1(hidden), self.fc2_2(hidden)])
 

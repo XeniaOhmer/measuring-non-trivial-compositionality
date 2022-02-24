@@ -135,14 +135,15 @@ class TreeReconstructionError(Metric):
             vocab_size=len(vocab),
             message_length=self.message_length,
             composition_fn=self.composition_fn(representation_size=self.message_length * len(vocab)),
-            loss_fn=MultipleCrossEntropyLoss(representation_size=self.message_length * len(vocab), message_length=self.message_length)
+            loss_fn=MultipleCrossEntropyLoss(representation_size=self.message_length * len(vocab),
+                                             message_length=self.message_length)
         )
         reconstruction_error = self._train_model(
             messages=tensorised_protocol.values(),
             derivations=tensorised_protocol.keys(),
             objective=objective,
             optimizer=torch.optim.Adam(objective.parameters(), lr=1e-1, weight_decay=self.weight_decay),
-            n_epochs=1_000
+            n_epochs=1000
         )
         return reconstruction_error
 
@@ -156,6 +157,8 @@ class TreeReconstructionError(Metric):
             quiet: bool = True
     ) -> float:
         for t in range(n_epochs):
+            if t % 100 == 0:
+                print(t)
             optimizer.zero_grad()
             errors = [objective(message, derivation) for message, derivation in zip(messages, derivations)]
             loss = sum(errors)
@@ -163,7 +166,7 @@ class TreeReconstructionError(Metric):
             if not quiet and t % 1000 == 0:
                 print(f'Training loss at epoch {t} is {loss.item():.4f}')
             optimizer.step()
-        return loss.item()
+        return loss.item()  # torch.mean(torch.tensor(errors)).item()
 
     def _protocol_to_tensor(self, protocol: Protocol) -> Dict[Tuple[torch.LongTensor, torch.LongTensor], torch.LongTensor]:
         vocab = get_vocab_from_protocol(protocol)
